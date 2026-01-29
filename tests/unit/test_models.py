@@ -1,15 +1,12 @@
 """Unit tests for models."""
 
-import pytest
-from datetime import datetime
-
 
 class TestDatasetModels:
     """Tests for dataset models."""
 
     def test_search_result_uri(self):
         """Test SearchResult URI property."""
-        from mldata.models.dataset import SearchResult, DatasetSource
+        from mldata.models.dataset import DatasetSource, SearchResult
 
         result = SearchResult(
             source=DatasetSource.HUGGINGFACE,

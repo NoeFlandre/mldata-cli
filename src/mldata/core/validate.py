@@ -10,6 +10,7 @@ import polars as pl
 @dataclass
 class FileCheckResult:
     """Result of file integrity check."""
+
     path: Path
     file_type: str  # "image", "audio", "tabular"
     is_valid: bool
@@ -321,11 +322,13 @@ class ValidateService:
             missing_ratio = missing_count / total_rows if total_rows > 0 else 0
 
             if missing_ratio > max_missing_ratio:
-                issues.append({
-                    "column": col_name,
-                    "missing_count": missing_count,
-                    "missing_ratio": missing_ratio,
-                })
+                issues.append(
+                    {
+                        "column": col_name,
+                        "missing_count": missing_count,
+                        "missing_ratio": missing_ratio,
+                    }
+                )
 
         return {
             "check_name": "missing_values",
@@ -353,10 +356,12 @@ class ValidateService:
             col_dtype = df[col_name].dtype
             # Check if column has mixed types
             if col_dtype == pl.Object:
-                type_issues.append({
-                    "column": col_name,
-                    "issue": "Object type may contain mixed types",
-                })
+                type_issues.append(
+                    {
+                        "column": col_name,
+                        "issue": "Object type may contain mixed types",
+                    }
+                )
 
         return {
             "check_name": "schema_consistency",

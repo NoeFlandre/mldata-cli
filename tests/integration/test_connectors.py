@@ -1,12 +1,6 @@
 """Integration tests for dataset connectors."""
 
-import pytest
-import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
-
-from mldata.connectors import HuggingFaceConnector, KaggleConnector, OpenMLConnector, LocalConnector, get_connector
-from mldata.models.dataset import DatasetSource
+from mldata.connectors import HuggingFaceConnector, KaggleConnector, LocalConnector, OpenMLConnector, get_connector
 
 
 class TestConnectorInitialization:
@@ -145,6 +139,7 @@ class TestLocalConnector:
         """Local connector always returns True for authentication."""
         connector = LocalConnector()
         import asyncio
+
         result = asyncio.run(connector.authenticate())
         assert result is True
 
@@ -152,6 +147,7 @@ class TestLocalConnector:
         """Local search always returns empty list."""
         connector = LocalConnector()
         import asyncio
+
         result = asyncio.run(connector.search("test", limit=10))
         assert result == []
 

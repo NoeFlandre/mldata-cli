@@ -1,21 +1,21 @@
 """Local connector for local files and directories."""
 
 import os
+from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Any, AsyncIterator
 
 import polars as pl
 
+from mldata.connectors.base import BaseConnector
 from mldata.models.dataset import (
     ColumnInfo,
-    DatasetMetadata,
-    DatasetSource,
     DataFormat,
     DataModality,
+    DatasetMetadata,
+    DatasetSource,
     DownloadProgress,
     SearchResult,
 )
-from mldata.connectors.base import BaseConnector
 
 
 class LocalConnector(BaseConnector):
@@ -165,7 +165,6 @@ class LocalConnector(BaseConnector):
         # Get schema and sample data
         columns: list[ColumnInfo] | None = None
         num_samples: int | None = None
-        sample_rows: list[dict[str, Any]] | None = None
         num_columns: int | None = None
 
         try:
@@ -174,10 +173,6 @@ class LocalConnector(BaseConnector):
                 columns = self._extract_schema(df)
                 num_samples = pl.read_parquet(path).height if format_type == DataFormat.PARQUET else None
                 num_columns = len(df.columns)
-
-                # Get sample rows
-                sample_df = df.head(5)
-                sample_rows = sample_df.to_dicts()
         except Exception:
             pass  # Keep None values on failure
 
@@ -316,8 +311,8 @@ class LocalConnector(BaseConnector):
         Yields:
             Download progress updates
         """
-        import shutil
         import glob as glob_module
+        import shutil
 
         source_path = Path(path)
         output_dir = Path(output_dir)

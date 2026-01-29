@@ -1,20 +1,20 @@
 """HuggingFace connector."""
 
 import os
+from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import AsyncIterator
 
 from huggingface_hub import HfApi
 
+from mldata.connectors.base import BaseConnector
 from mldata.models.dataset import (
+    DataModality,
     DatasetMetadata,
     DatasetSource,
-    DataModality,
-    MLTask,
     DownloadProgress,
+    MLTask,
     SearchResult,
 )
-from mldata.connectors.base import BaseConnector
 
 
 class HuggingFaceConnector(BaseConnector):
@@ -84,10 +84,12 @@ class HuggingFaceConnector(BaseConnector):
             List of search results
         """
         # Search for datasets
-        results = list(self.api.list_datasets(
-            search=query,
-            limit=limit,
-        ))
+        results = list(
+            self.api.list_datasets(
+                search=query,
+                limit=limit,
+            )
+        )
 
         search_results = []
         for r in results:
@@ -183,11 +185,13 @@ class HuggingFaceConnector(BaseConnector):
         try:
             # Disable progress bars
             import os
+
             os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 
             dataset = load_dataset(dataset_id, split="train", trust_remote_code=True)
             if hasattr(dataset, "info") and dataset.info.features:
                 from mldata.models.dataset import ColumnInfo
+
                 columns = []
                 for name, dtype in dataset.info.features.items():
                     col_info = ColumnInfo(
@@ -255,6 +259,7 @@ class HuggingFaceConnector(BaseConnector):
 
         # Disable progress bars
         import os
+
         os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 
         if subset:
@@ -285,7 +290,7 @@ class HuggingFaceConnector(BaseConnector):
                     file_name=split_name,
                 )
 
-        except Exception as e:
+        except Exception:
             yield DownloadProgress(
                 dataset_id=dataset_id,
                 source=DatasetSource.HUGGINGFACE,

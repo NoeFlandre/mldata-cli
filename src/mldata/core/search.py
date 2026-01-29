@@ -1,7 +1,5 @@
 """Search service for unified dataset search."""
 
-from typing import Any
-
 from mldata.models.dataset import SearchResult
 
 

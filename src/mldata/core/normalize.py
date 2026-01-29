@@ -109,11 +109,13 @@ class NormalizeService:
             col_dtype = df[col_name].dtype
             nullable = df[col_name].null_count() > 0
 
-            schema.append({
-                "name": col_name,
-                "dtype": str(col_dtype),
-                "nullable": nullable,
-            })
+            schema.append(
+                {
+                    "name": col_name,
+                    "dtype": str(col_dtype),
+                    "nullable": nullable,
+                }
+            )
 
         return schema
 

@@ -1,8 +1,7 @@
 """Unit tests for core services."""
 
-import pytest
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 class TestProfileService:
@@ -12,10 +11,10 @@ class TestProfileService:
         """Test profiling a CSV file."""
         from mldata.core.profile import ProfileService
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            f.write('name,age,score\n')
-            f.write('Alice,25,85.5\n')
-            f.write('Bob,30,92.3\n')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("name,age,score\n")
+            f.write("Alice,25,85.5\n")
+            f.write("Bob,30,92.3\n")
             test_path = Path(f.name)
 
         try:
@@ -29,26 +28,29 @@ class TestProfileService:
 
             # Check column names
             col_names = [c.name for c in result.columns]
-            assert 'name' in col_names
-            assert 'age' in col_names
-            assert 'score' in col_names
+            assert "name" in col_names
+            assert "age" in col_names
+            assert "score" in col_names
         finally:
             test_path.unlink()
 
     def test_profile_parquet(self):
         """Test profiling a Parquet file."""
-        from mldata.core.profile import ProfileService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+        from mldata.core.profile import ProfileService
+
+        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
             test_path = Path(f.name)
 
         try:
             # Create a DataFrame and save as parquet
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': [10.5, 20.5, 30.5],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": [10.5, 20.5, 30.5],
+                }
+            )
             df.write_parquet(test_path)
 
             profile = ProfileService()
@@ -63,20 +65,20 @@ class TestProfileService:
         """Test that numeric statistics are computed correctly."""
         from mldata.core.profile import ProfileService
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            f.write('val\n')
-            f.write('10\n')
-            f.write('20\n')
-            f.write('30\n')
-            f.write('40\n')
-            f.write('50\n')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("val\n")
+            f.write("10\n")
+            f.write("20\n")
+            f.write("30\n")
+            f.write("40\n")
+            f.write("50\n")
             test_path = Path(f.name)
 
         try:
             profile = ProfileService()
             result = profile.profile(test_path)
 
-            stats = result.numeric_stats.get('val')
+            stats = result.numeric_stats.get("val")
             assert stats is not None
             assert stats.mean == 30.0
             assert stats.min == 10.0
@@ -88,20 +90,20 @@ class TestProfileService:
         """Test that categorical statistics are computed correctly."""
         from mldata.core.profile import ProfileService
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            f.write('category\n')
-            f.write('A\n')
-            f.write('B\n')
-            f.write('A\n')
-            f.write('C\n')
-            f.write('A\n')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("category\n")
+            f.write("A\n")
+            f.write("B\n")
+            f.write("A\n")
+            f.write("C\n")
+            f.write("A\n")
             test_path = Path(f.name)
 
         try:
             profile = ProfileService()
             result = profile.profile(test_path)
 
-            cat_stats = result.categorical_stats.get('category')
+            cat_stats = result.categorical_stats.get("category")
             assert cat_stats is not None
             assert cat_stats.unique_values == 3
         finally:
@@ -115,8 +117,8 @@ class TestIncrementalService:
         """Test file hash computation."""
         from mldata.core.incremental import IncrementalService
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-            f.write('test content')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write("test content")
             test_path = Path(f.name)
 
         try:
@@ -133,100 +135,105 @@ class TestIncrementalService:
         """Test directory hash computation."""
         from mldata.core.incremental import IncrementalService
 
-        test_dir = Path('/tmp/test-incremental-hashes')
+        test_dir = Path("/tmp/test-incremental-hashes")
         test_dir.mkdir(exist_ok=True)
 
         try:
             # Use proper data file extensions
-            (test_dir / 'file1.csv').write_text('col1,col2\nval1,val2\n')
-            (test_dir / 'file2.csv').write_text('col1,col2\nval3,val4\n')
+            (test_dir / "file1.csv").write_text("col1,col2\nval1,val2\n")
+            (test_dir / "file2.csv").write_text("col1,col2\nval3,val4\n")
 
             inc = IncrementalService()
             hashes = inc.compute_dir_hashes(test_dir)
 
-            assert 'file1.csv' in hashes
-            assert 'file2.csv' in hashes
-            assert len(hashes['file1.csv']) == 64
+            assert "file1.csv" in hashes
+            assert "file2.csv" in hashes
+            assert len(hashes["file1.csv"]) == 64
         finally:
             import shutil
+
             shutil.rmtree(test_dir)
 
     def test_detect_changes_no_cache(self):
         """Test change detection with no previous cache."""
         from mldata.core.incremental import IncrementalService
 
-        test_dir = Path('/tmp/test-detect-changes')
+        test_dir = Path("/tmp/test-detect-changes")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            (test_dir / 'file1.csv').write_text('col1,col2\nval1,val2\n')
+            (test_dir / "file1.csv").write_text("col1,col2\nval1,val2\n")
 
-            inc = IncrementalService(cache_dir=test_dir / '.cache')
+            inc = IncrementalService(cache_dir=test_dir / ".cache")
             changes = inc.detect_changes(test_dir)
 
-            assert len(changes['added']) > 0
-            assert len(changes['changed']) == 0
-            assert len(changes['unchanged']) == 0
+            assert len(changes["added"]) > 0
+            assert len(changes["changed"]) == 0
+            assert len(changes["unchanged"]) == 0
         finally:
             import shutil
+
             shutil.rmtree(test_dir)
 
     def test_detect_changes_unchanged(self):
         """Test change detection when files haven't changed."""
         from mldata.core.incremental import IncrementalService
 
-        test_dir = Path('/tmp/test-detect-unchanged')
+        test_dir = Path("/tmp/test-detect-unchanged")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            (test_dir / 'file1.csv').write_text('col1,col2\nval1,val2\n')
-            (test_dir / 'file2.csv').write_text('col1,col2\nval3,val4\n')
+            (test_dir / "file1.csv").write_text("col1,col2\nval1,val2\n")
+            (test_dir / "file2.csv").write_text("col1,col2\nval3,val4\n")
 
-            inc = IncrementalService(cache_dir=test_dir / '.cache')
+            inc = IncrementalService(cache_dir=test_dir / ".cache")
 
             # First run - save hashes
             hashes = inc.compute_dir_hashes(test_dir)
-            inc.save_hashes('test://dataset', hashes)
+            inc.save_hashes("test://dataset", hashes)
 
             # Second run - detect changes
-            changes = inc.detect_changes(test_dir, 'test://dataset')
+            changes = inc.detect_changes(test_dir, "test://dataset")
 
-            assert len(changes['changed']) == 0
-            assert len(changes['unchanged']) == 2
+            assert len(changes["changed"]) == 0
+            assert len(changes["unchanged"]) == 2
         finally:
             import shutil
+
             shutil.rmtree(test_dir)
 
     def test_detect_changes_modified(self):
         """Test change detection when files have been modified."""
-        from mldata.core.incremental import IncrementalService
         import time
 
-        test_dir = Path('/tmp/test-detect-modified')
+        from mldata.core.incremental import IncrementalService
+
+        test_dir = Path("/tmp/test-detect-modified")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            (test_dir / 'file1.csv').write_text('col1,col2\nval1,val2\n')
+            (test_dir / "file1.csv").write_text("col1,col2\nval1,val2\n")
             time.sleep(0.1)
-            (test_dir / 'file2.csv').write_text('col1,col2\nval3,val4\n')
+            (test_dir / "file2.csv").write_text("col1,col2\nval3,val4\n")
 
-            inc = IncrementalService(cache_dir=test_dir / '.cache')
+            inc = IncrementalService(cache_dir=test_dir / ".cache")
 
             # First run - save hashes
             hashes = inc.compute_dir_hashes(test_dir)
-            inc.save_hashes('test://dataset', hashes)
+            inc.save_hashes("test://dataset", hashes)
 
             # Modify file1
             time.sleep(0.1)
-            (test_dir / 'file1.csv').write_text('col1,col2\nval1-modified,val2-modified\n')
+            (test_dir / "file1.csv").write_text("col1,col2\nval1-modified,val2-modified\n")
 
             # Second run - detect changes
-            changes = inc.detect_changes(test_dir, 'test://dataset')
+            changes = inc.detect_changes(test_dir, "test://dataset")
 
-            assert 'file1.csv' in changes['changed']
-            assert 'file2.csv' in changes['unchanged']
+            assert "file1.csv" in changes["changed"]
+            assert "file2.csv" in changes["unchanged"]
         finally:
             import shutil
+
             shutil.rmtree(test_dir)
 
 
@@ -237,22 +244,18 @@ class TestParallelService:
         """Test parallel file conversion."""
         from mldata.core.parallel import ParallelService
 
-        test_dir = Path('/tmp/test-parallel-convert')
+        test_dir = Path("/tmp/test-parallel-convert")
         test_dir.mkdir(exist_ok=True)
-        output_dir = test_dir / 'output'
+        output_dir = test_dir / "output"
         output_dir.mkdir(exist_ok=True)
 
         try:
             # Create test CSV files
             for i in range(3):
-                (test_dir / f'file{i}.csv').write_text('col1,col2\na,b\nc,d\n')
+                (test_dir / f"file{i}.csv").write_text("col1,col2\na,b\nc,d\n")
 
             parallel = ParallelService(max_workers=2)
-            results = parallel.convert_files_parallel(
-                list(test_dir.glob('*.csv')),
-                output_dir,
-                target_format='parquet'
-            )
+            results = parallel.convert_files_parallel(list(test_dir.glob("*.csv")), output_dir, target_format="parquet")
 
             assert len(results) == 3
             # All should succeed
@@ -260,22 +263,23 @@ class TestParallelService:
                 assert success
 
             # Check output files exist
-            assert len(list(output_dir.glob('*.parquet'))) == 3
+            assert len(list(output_dir.glob("*.parquet"))) == 3
         finally:
             import shutil
+
             shutil.rmtree(test_dir)
 
     def test_parallel_process_files(self):
         """Test parallel file processing with custom function."""
         from mldata.core.parallel import ParallelService
 
-        test_dir = Path('/tmp/test-parallel-process')
+        test_dir = Path("/tmp/test-parallel-process")
         test_dir.mkdir(exist_ok=True)
 
         try:
             # Create test files
             for i in range(3):
-                (test_dir / f'file{i}.txt').write_text(f'content {i}')
+                (test_dir / f"file{i}.txt").write_text(f"content {i}")
 
             parallel = ParallelService(max_workers=2)
 
@@ -283,16 +287,14 @@ class TestParallelService:
                 content = path.read_text()
                 return (path, len(content))
 
-            results = parallel.process_files_parallel(
-                list(test_dir.glob('*.txt')),
-                process_file
-            )
+            results = parallel.process_files_parallel(list(test_dir.glob("*.txt")), process_file)
 
             assert len(results) == 3
             for path, length in results:
                 assert length > 0
         finally:
             import shutil
+
             shutil.rmtree(test_dir)
 
 
@@ -337,18 +339,18 @@ class TestDriftService:
         from mldata.core.drift import DriftService
 
         # Create baseline dataset
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            f.write('value\n')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("value\n")
             for i in range(100):
-                f.write(f'{i * 0.1}\n')
+                f.write(f"{i * 0.1}\n")
             baseline_path = Path(f.name)
 
         try:
             # Create current dataset with shift
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-                f.write('value\n')
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+                f.write("value\n")
                 for i in range(100):
-                    f.write(f'{i * 0.1 + 0.5}\n')  # Shifted values
+                    f.write(f"{i * 0.1 + 0.5}\n")  # Shifted values
                 current_path = Path(f.name)
 
             try:
@@ -356,7 +358,7 @@ class TestDriftService:
                 report = drift.detect_drift(baseline_path, current_path)
 
                 assert report is not None
-                assert 'value' in report.numeric_drift
+                assert "value" in report.numeric_drift
             finally:
                 current_path.unlink()
         finally:
@@ -368,12 +370,12 @@ class TestSchemaEvolutionService:
 
     def test_compare_schemas_identical(self):
         """Test schema comparison with identical schemas."""
-        from mldata.core.schema import SchemaEvolutionService, SchemaColumn
+        from mldata.core.schema import SchemaColumn, SchemaEvolutionService
 
         service = SchemaEvolutionService()
         columns = [
-            SchemaColumn(name='id', dtype='Int64', nullable=False),
-            SchemaColumn(name='name', dtype='String', nullable=False),
+            SchemaColumn(name="id", dtype="Int64", nullable=False),
+            SchemaColumn(name="name", dtype="String", nullable=False),
         ]
 
         evolution = service.compare_schemas(columns, columns)
@@ -384,80 +386,80 @@ class TestSchemaEvolutionService:
 
     def test_compare_schemas_added_column(self):
         """Test schema comparison with added column."""
-        from mldata.core.schema import SchemaEvolutionService, SchemaColumn
+        from mldata.core.schema import SchemaColumn, SchemaEvolutionService
 
         service = SchemaEvolutionService()
         baseline = [
-            SchemaColumn(name='id', dtype='Int64', nullable=False),
-            SchemaColumn(name='name', dtype='String', nullable=False),
+            SchemaColumn(name="id", dtype="Int64", nullable=False),
+            SchemaColumn(name="name", dtype="String", nullable=False),
         ]
         current = [
-            SchemaColumn(name='id', dtype='Int64', nullable=False),
-            SchemaColumn(name='name', dtype='String', nullable=False),
-            SchemaColumn(name='email', dtype='String', nullable=True),
+            SchemaColumn(name="id", dtype="Int64", nullable=False),
+            SchemaColumn(name="name", dtype="String", nullable=False),
+            SchemaColumn(name="email", dtype="String", nullable=True),
         ]
 
         evolution = service.compare_schemas(baseline, current)
 
         assert len(evolution.added_columns) == 1
-        assert evolution.added_columns[0].name == 'email'
+        assert evolution.added_columns[0].name == "email"
 
     def test_compare_schemas_removed_column(self):
         """Test schema comparison with removed column."""
-        from mldata.core.schema import SchemaEvolutionService, SchemaColumn
+        from mldata.core.schema import SchemaColumn, SchemaEvolutionService
 
         service = SchemaEvolutionService()
         baseline = [
-            SchemaColumn(name='id', dtype='Int64', nullable=False),
-            SchemaColumn(name='name', dtype='String', nullable=False),
-            SchemaColumn(name='email', dtype='String', nullable=True),
+            SchemaColumn(name="id", dtype="Int64", nullable=False),
+            SchemaColumn(name="name", dtype="String", nullable=False),
+            SchemaColumn(name="email", dtype="String", nullable=True),
         ]
         current = [
-            SchemaColumn(name='id', dtype='Int64', nullable=False),
-            SchemaColumn(name='name', dtype='String', nullable=False),
+            SchemaColumn(name="id", dtype="Int64", nullable=False),
+            SchemaColumn(name="name", dtype="String", nullable=False),
         ]
 
         evolution = service.compare_schemas(baseline, current)
 
         assert len(evolution.removed_columns) == 1
-        assert evolution.removed_columns[0].name == 'email'
+        assert evolution.removed_columns[0].name == "email"
 
     def test_compare_schemas_type_change(self):
         """Test schema comparison with type change."""
-        from mldata.core.schema import SchemaEvolutionService, SchemaColumn
+        from mldata.core.schema import SchemaColumn, SchemaEvolutionService
 
         service = SchemaEvolutionService()
         baseline = [
-            SchemaColumn(name='value', dtype='Int64', nullable=False),
+            SchemaColumn(name="value", dtype="Int64", nullable=False),
         ]
         current = [
-            SchemaColumn(name='value', dtype='Float64', nullable=False),
+            SchemaColumn(name="value", dtype="Float64", nullable=False),
         ]
 
         evolution = service.compare_schemas(baseline, current)
 
         assert len(evolution.type_changes) == 1
-        assert evolution.type_changes[0].column == 'value'
-        assert evolution.type_changes[0].old_value == 'Int64'
-        assert evolution.type_changes[0].new_value == 'Float64'
+        assert evolution.type_changes[0].column == "value"
+        assert evolution.type_changes[0].old_value == "Int64"
+        assert evolution.type_changes[0].new_value == "Float64"
 
     def test_detect_evolution(self):
         """Test full schema evolution detection from files."""
         from mldata.core.schema import SchemaEvolutionService
 
         # Create baseline dataset
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            f.write('id,name,age\n')
-            f.write('1,Alice,25\n')
-            f.write('2,Bob,30\n')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+            f.write("id,name,age\n")
+            f.write("1,Alice,25\n")
+            f.write("2,Bob,30\n")
             baseline_path = Path(f.name)
 
         try:
             # Create current dataset with added column
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-                f.write('id,name,age,email\n')
-                f.write('1,Alice,25,alice@test.com\n')
-                f.write('2,Bob,30,bob@test.com\n')
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+                f.write("id,name,age,email\n")
+                f.write("1,Alice,25,alice@test.com\n")
+                f.write("2,Bob,30,bob@test.com\n")
                 current_path = Path(f.name)
 
             try:
@@ -466,7 +468,7 @@ class TestSchemaEvolutionService:
 
                 assert evolution is not None
                 assert len(evolution.added_columns) == 1
-                assert evolution.added_columns[0].name == 'email'
+                assert evolution.added_columns[0].name == "email"
             finally:
                 current_path.unlink()
         finally:
@@ -539,20 +541,23 @@ class TestExportService:
 
     def test_export_parquet_default_compression(self):
         """Test parquet export with default (snappy) compression."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': [10.5, 20.5, 30.5],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": [10.5, 20.5, 30.5],
+                }
+            )
 
             export = ExportService()
-            result = export.export(df, test_path, format='parquet', compression=None)
+            result = export.export(df, test_path, format="parquet", compression=None)
 
             assert result.exists()
         finally:
@@ -560,20 +565,23 @@ class TestExportService:
 
     def test_export_parquet_gzip_compression(self):
         """Test parquet export with gzip compression."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': [10.5, 20.5, 30.5],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": [10.5, 20.5, 30.5],
+                }
+            )
 
             export = ExportService()
-            result = export.export(df, test_path, format='parquet', compression='gzip')
+            result = export.export(df, test_path, format="parquet", compression="gzip")
 
             assert result.exists()
             # Gzip file should be smaller than uncompressed
@@ -583,45 +591,51 @@ class TestExportService:
 
     def test_export_parquet_gzip_with_level(self):
         """Test parquet export with gzip compression and level."""
-        from mldata.core.export import ExportService, CompressionOptions
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': [10.5, 20.5, 30.5],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": [10.5, 20.5, 30.5],
+                }
+            )
 
             export = ExportService()
             # Test compression level parsing
-            comp_options = export.parse_compression('gzip:6')
-            assert comp_options.type == 'gzip'
+            comp_options = export.parse_compression("gzip:6")
+            assert comp_options.type == "gzip"
             assert comp_options.level == 6
 
-            result = export.export(df, test_path, format='parquet', compression='gzip:6')
+            result = export.export(df, test_path, format="parquet", compression="gzip:6")
             assert result.exists()
         finally:
             test_path.unlink()
 
     def test_export_parquet_zstd_compression(self):
         """Test parquet export with zstd compression."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': [10.5, 20.5, 30.5],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": [10.5, 20.5, 30.5],
+                }
+            )
 
             export = ExportService()
-            result = export.export(df, test_path, format='parquet', compression='zstd')
+            result = export.export(df, test_path, format="parquet", compression="zstd")
 
             assert result.exists()
         finally:
@@ -629,20 +643,23 @@ class TestExportService:
 
     def test_export_parquet_zstd_with_level(self):
         """Test parquet export with zstd compression and level."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': [10.5, 20.5, 30.5],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": [10.5, 20.5, 30.5],
+                }
+            )
 
             export = ExportService()
-            result = export.export(df, test_path, format='parquet', compression='zstd:3')
+            result = export.export(df, test_path, format="parquet", compression="zstd:3")
 
             assert result.exists()
         finally:
@@ -650,48 +667,54 @@ class TestExportService:
 
     def test_export_csv(self):
         """Test CSV export."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'name': ['a', 'b', 'c'],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["a", "b", "c"],
+                }
+            )
 
             export = ExportService()
-            result = export.export(df, test_path, format='csv')
+            result = export.export(df, test_path, format="csv")
 
             assert result.exists()
             content = result.read_text()
-            assert 'id' in content
-            assert 'name' in content
+            assert "id" in content
+            assert "name" in content
         finally:
             test_path.unlink()
 
     def test_export_jsonl(self):
         """Test JSONL export."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        with tempfile.NamedTemporaryFile(suffix='.jsonl', delete=False) as f:
+        from mldata.core.export import ExportService
+
+        with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
             test_path = Path(f.name)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'name': ['a', 'b', 'c'],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "name": ["a", "b", "c"],
+                }
+            )
 
             export = ExportService()
-            result = export.export(df, test_path, format='jsonl')
+            result = export.export(df, test_path, format="jsonl")
 
             assert result.exists()
             content = result.read_text()
-            lines = content.strip().split('\n')
+            lines = content.strip().split("\n")
             assert len(lines) == 3
         finally:
             test_path.unlink()
@@ -703,13 +726,13 @@ class TestExportService:
         export = ExportService()
 
         # Check that guide exists for known types
-        assert 'snappy' in export.COMPRESSION_GUIDE
-        assert 'gzip' in export.COMPRESSION_GUIDE
-        assert 'zstd' in export.COMPRESSION_GUIDE
+        assert "snappy" in export.COMPRESSION_GUIDE
+        assert "gzip" in export.COMPRESSION_GUIDE
+        assert "zstd" in export.COMPRESSION_GUIDE
 
         # Check gzip guide has level support
-        assert export.COMPRESSION_GUIDE['gzip']['level_support'] is True
-        assert export.COMPRESSION_GUIDE['snappy']['level_support'] is False
+        assert export.COMPRESSION_GUIDE["gzip"]["level_support"] is True
+        assert export.COMPRESSION_GUIDE["snappy"]["level_support"] is False
 
     def test_parse_compression_invalid_level(self):
         """Test that invalid compression levels raise errors."""
@@ -719,7 +742,7 @@ class TestExportService:
 
         # Invalid level for gzip
         try:
-            export.parse_compression('gzip:99')
+            export.parse_compression("gzip:99")
             assert False, "Should have raised ValueError"
         except ValueError as e:
             assert "1 and 22" in str(e)
@@ -730,11 +753,11 @@ class TestExportService:
 
         export = ExportService()
 
-        info = export.get_compression_info('gzip:6')
-        assert info['type'] == 'gzip'
-        assert info['level'] == 6
-        assert 'typical_ratio' in info
-        assert 'speed' in info
+        info = export.get_compression_info("gzip:6")
+        assert info["type"] == "gzip"
+        assert info["level"] == 6
+        assert "typical_ratio" in info
+        assert "speed" in info
 
 
 class TestFetchService:
@@ -789,8 +812,8 @@ class TestFetchService:
         """Test file hash computation."""
         from mldata.core.fetch import FetchService
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
-            f.write('test content for hashing')
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write("test content for hashing")
             test_path = Path(f.name)
 
         try:
@@ -808,13 +831,14 @@ class TestFetchService:
     def test_resume_state_cleanup(self):
         """Test resume state cleanup for old downloads."""
         import time
+
         from mldata.core.fetch import FetchService, PartialDownload
 
         fetch = FetchService()
 
         # Create a partial download with old timestamp
         old_time = time.time() - 100000  # ~27 hours ago
-        partial = PartialDownload(
+        PartialDownload(
             url="https://example.com/old-file.zip",
             temp_path=Path("/tmp/nonexistent.part"),
             final_path=Path("/tmp/old-file.zip"),
@@ -842,16 +866,17 @@ class TestFileIntegrityService:
 
     def test_image_validation_valid(self):
         """Test validating a valid image file."""
-        from mldata.core.validate import FileIntegrityService
-        from PIL import Image
-        import os
 
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
+        from PIL import Image
+
+        from mldata.core.validate import FileIntegrityService
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
             test_path = Path(f.name)
 
         try:
             # Create a simple test image
-            img = Image.new('RGB', (100, 100), color='red')
+            img = Image.new("RGB", (100, 100), color="red")
             img.save(test_path)
 
             service = FileIntegrityService()
@@ -859,23 +884,23 @@ class TestFileIntegrityService:
 
             assert result.is_valid
             assert result.error is None
-            assert result.details.get('width') == 100
-            assert result.details.get('height') == 100
+            assert result.details.get("width") == 100
+            assert result.details.get("height") == 100
         finally:
             test_path.unlink()
-            if test_path.with_suffix('.png').exists():
-                test_path.with_suffix('.png').unlink()
+            if test_path.with_suffix(".png").exists():
+                test_path.with_suffix(".png").unlink()
 
     def test_image_validation_invalid(self):
         """Test validating an invalid/corrupt image file."""
         from mldata.core.validate import FileIntegrityService
 
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
             test_path = Path(f.name)
 
         try:
             # Create an invalid PNG file
-            test_path.write_bytes(b'not a valid png file content')
+            test_path.write_bytes(b"not a valid png file content")
 
             service = FileIntegrityService()
             result = service.validate_image(test_path)
@@ -888,23 +913,24 @@ class TestFileIntegrityService:
 
     def test_file_integrity_run_check(self):
         """Test running file integrity checks."""
-        from mldata.core.validate import FileIntegrityService
         from PIL import Image
 
+        from mldata.core.validate import FileIntegrityService
+
         # Create test images
-        test_dir = Path('/tmp/test-integrity')
+        test_dir = Path("/tmp/test-integrity")
         test_dir.mkdir(exist_ok=True)
 
-        valid_image = test_dir / 'valid.png'
-        invalid_image = test_dir / 'invalid.png'
+        valid_image = test_dir / "valid.png"
+        invalid_image = test_dir / "invalid.png"
 
         try:
             # Create valid image
-            img = Image.new('RGB', (50, 50), color='blue')
+            img = Image.new("RGB", (50, 50), color="blue")
             img.save(valid_image)
 
             # Create invalid file
-            invalid_image.write_bytes(b'invalid data')
+            invalid_image.write_bytes(b"invalid data")
 
             service = FileIntegrityService()
             results = service.run_checks([valid_image, invalid_image])
@@ -916,6 +942,7 @@ class TestFileIntegrityService:
             assert not results[1].is_valid
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -941,10 +968,11 @@ class TestDVCService:
 
     def test_generate_dvc_file(self):
         """Test generating a DVC file."""
-        from mldata.integrations.dvc import DVCService
         import yaml
 
-        test_dir = Path('/tmp/test-dvc')
+        from mldata.integrations.dvc import DVCService
+
+        test_dir = Path("/tmp/test-dvc")
         test_dir.mkdir(exist_ok=True)
         dataset_path = test_dir / "mydataset"
         dataset_path.mkdir()
@@ -963,15 +991,17 @@ class TestDVCService:
             assert content["outs"][0]["md5"] == "abc123hash"
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
     def test_generate_dvc_file_with_remote(self):
         """Test generating a DVC file with remote."""
-        from mldata.integrations.dvc import DVCService
         import yaml
 
-        test_dir = Path('/tmp/test-dvc-remote')
+        from mldata.integrations.dvc import DVCService
+
+        test_dir = Path("/tmp/test-dvc-remote")
         test_dir.mkdir(exist_ok=True)
         dataset_path = test_dir / "mydataset"
         dataset_path.mkdir()
@@ -986,6 +1016,7 @@ class TestDVCService:
             assert content["outs"][0]["remote"] == "myremote"
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1001,10 +1032,11 @@ class TestDVCService:
 
     def test_verify_dvc_file_valid(self):
         """Test verifying a valid DVC file."""
-        from mldata.integrations.dvc import DVCService
         import yaml
 
-        test_dir = Path('/tmp/test-dvc-verify')
+        from mldata.integrations.dvc import DVCService
+
+        test_dir = Path("/tmp/test-dvc-verify")
         test_dir.mkdir(exist_ok=True)
         dvc_path = test_dir / "test.dvc"
 
@@ -1016,6 +1048,7 @@ class TestDVCService:
             assert service.verify_dvc_file(dvc_path) is True
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1023,7 +1056,7 @@ class TestDVCService:
         """Test verifying an invalid DVC file."""
         from mldata.integrations.dvc import DVCService
 
-        test_dir = Path('/tmp/test-dvc-verify-invalid')
+        test_dir = Path("/tmp/test-dvc-verify-invalid")
         test_dir.mkdir(exist_ok=True)
         dvc_path = test_dir / "invalid.dvc"
 
@@ -1035,6 +1068,7 @@ class TestDVCService:
             assert service.verify_dvc_file(dvc_path) is False
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1073,7 +1107,7 @@ class TestGitLFSService:
         """Test detecting large files."""
         from mldata.integrations.gitlfs import GitLFSService
 
-        test_dir = Path('/tmp/test-lfs-detect')
+        test_dir = Path("/tmp/test-lfs-detect")
         test_dir.mkdir(exist_ok=True)
 
         try:
@@ -1093,13 +1127,15 @@ class TestGitLFSService:
             assert any("parquet" in str(f[0]) for f in large_files)
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
     def test_get_patterns_for_files(self):
         """Test getting patterns for files."""
-        from mldata.integrations.gitlfs import GitLFSService
         from pathlib import Path
+
+        from mldata.integrations.gitlfs import GitLFSService
 
         service = GitLFSService()
 
@@ -1120,15 +1156,12 @@ class TestGitLFSService:
         """Test updating .gitattributes."""
         from mldata.integrations.gitlfs import GitLFSService
 
-        test_dir = Path('/tmp/test-lfs-gitattr')
+        test_dir = Path("/tmp/test-lfs-gitattr")
         test_dir.mkdir(exist_ok=True)
 
         try:
             service = GitLFSService()
-            result = service.update_gitattributes(
-                test_dir,
-                {"*.parquet", "*.csv"}
-            )
+            result = service.update_gitattributes(test_dir, {"*.parquet", "*.csv"})
 
             assert result.success is True
             assert len(result.patterns_added) == 2
@@ -1139,6 +1172,7 @@ class TestGitLFSService:
             assert "*.csv" in gitattr_path.read_text()
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1146,7 +1180,7 @@ class TestGitLFSService:
         """Test updating .gitattributes with existing patterns."""
         from mldata.integrations.gitlfs import GitLFSService
 
-        test_dir = Path('/tmp/test-lfs-gitattr-existing')
+        test_dir = Path("/tmp/test-lfs-gitattr-existing")
         test_dir.mkdir(exist_ok=True)
 
         try:
@@ -1162,6 +1196,7 @@ class TestGitLFSService:
             assert "already exist" in result.output
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1169,7 +1204,7 @@ class TestGitLFSService:
         """Test getting LFS tracking status."""
         from mldata.integrations.gitlfs import GitLFSService
 
-        test_dir = Path('/tmp/test-lfs-status')
+        test_dir = Path("/tmp/test-lfs-status")
         test_dir.mkdir(exist_ok=True)
 
         try:
@@ -1184,6 +1219,7 @@ class TestGitLFSService:
             assert "*.parquet" in status["lfs_patterns"]
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1192,10 +1228,7 @@ class TestGitLFSService:
         from mldata.integrations.gitlfs import GitLFSService
 
         service = GitLFSService()
-        instructions = service.get_instructions(
-            Path("/test/dataset"),
-            Path("/test/repo")
-        )
+        instructions = service.get_instructions(Path("/test/dataset"), Path("/test/repo"))
 
         assert "git lfs install" in instructions
         assert "git lfs track" in instructions
@@ -1206,7 +1239,7 @@ class TestGitLFSService:
         """Test configuring LFS tracking."""
         from mldata.integrations.gitlfs import GitLFSService
 
-        test_dir = Path('/tmp/test-lfs-config')
+        test_dir = Path("/tmp/test-lfs-config")
         test_dir.mkdir(exist_ok=True)
         dataset_dir = test_dir / "dataset"
         dataset_dir.mkdir()
@@ -1221,6 +1254,7 @@ class TestGitLFSService:
             assert gitattr.exists()
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1265,17 +1299,20 @@ class TestMultiFormatExport:
 
     def test_export_all_formats(self):
         """Test exporting to all supported formats."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        test_dir = Path('/tmp/test-all-formats')
+        from mldata.core.export import ExportService
+
+        test_dir = Path("/tmp/test-all-formats")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': ['a', 'b', 'c'],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": ["a", "b", "c"],
+                }
+            )
 
             export = ExportService()
             results = export.export_all_formats(df, test_dir)
@@ -1287,39 +1324,44 @@ class TestMultiFormatExport:
             assert (test_dir / "data.jsonl").exists()
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
     def test_export_splits_multiple_formats(self):
         """Test exporting splits to multiple formats."""
-        from mldata.core.export import ExportService
         import polars as pl
 
-        test_dir = Path('/tmp/test-splits-multi')
+        from mldata.core.export import ExportService
+
+        test_dir = Path("/tmp/test-splits-multi")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3, 4, 5],
-                'label': [0, 1, 0, 1, 0],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3, 4, 5],
+                    "label": [0, 1, 0, 1, 0],
+                }
+            )
 
             splits = {
-                'train': df.head(3),
-                'val': df.tail(2),
+                "train": df.head(3),
+                "val": df.tail(2),
             }
 
             export = ExportService()
             results = export.export_splits_multiple(splits, test_dir, formats=["parquet", "csv"])
 
             # Should have train and val
-            assert 'train' in results
-            assert 'val' in results
+            assert "train" in results
+            assert "val" in results
             # Each split should have parquet and csv
-            assert 'parquet' in results['train']
-            assert 'csv' in results['train']
+            assert "parquet" in results["train"]
+            assert "csv" in results["train"]
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1378,18 +1420,21 @@ class TestFrameworkExport:
 
     def test_pytorch_export(self):
         """Test PyTorch dataset export."""
-        from mldata.core.framework import PyTorchExporter
         import polars as pl
 
-        test_dir = Path('/tmp/test-pytorch-export')
+        from mldata.core.framework import PyTorchExporter
+
+        test_dir = Path("/tmp/test-pytorch-export")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'feature': [10.5, 20.5, 30.5],
-                'label': [0, 1, 0],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "feature": [10.5, 20.5, 30.5],
+                    "label": [0, 1, 0],
+                }
+            )
 
             exporter = PyTorchExporter()
             result = exporter.export(df, test_dir, dataset_name="test_data")
@@ -1400,23 +1445,27 @@ class TestFrameworkExport:
             assert "torch" in result.loader_code.lower() or "Dataset" in result.loader_code
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
     def test_tensorflow_export(self):
         """Test TensorFlow dataset export."""
-        from mldata.core.framework import TensorFlowExporter
         import polars as pl
 
-        test_dir = Path('/tmp/test-tf-export')
+        from mldata.core.framework import TensorFlowExporter
+
+        test_dir = Path("/tmp/test-tf-export")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'feature': [10.5, 20.5, 30.5],
-                'label': [0, 1, 0],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "feature": [10.5, 20.5, 30.5],
+                    "label": [0, 1, 0],
+                }
+            )
 
             exporter = TensorFlowExporter()
             result = exporter.export(df, test_dir, dataset_name="test_data")
@@ -1425,6 +1474,7 @@ class TestFrameworkExport:
             assert "tensorflow" in result.loader_code.lower() or "tf" in result.loader_code.lower()
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
@@ -1474,17 +1524,20 @@ class TestFrameworkExport:
 
     def test_export_dataset_function(self):
         """Test the export_dataset convenience function."""
-        from mldata.core.framework import export_dataset
         import polars as pl
 
-        test_dir = Path('/tmp/test-export-dataset')
+        from mldata.core.framework import export_dataset
+
+        test_dir = Path("/tmp/test-export-dataset")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'value': ['a', 'b', 'c'],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "value": ["a", "b", "c"],
+                }
+            )
 
             result = export_dataset(df, test_dir, format="csv")
 
@@ -1492,23 +1545,27 @@ class TestFrameworkExport:
             assert (test_dir / "data.csv").exists()
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
 
     def test_export_dataset_with_framework(self):
         """Test exporting with framework specification."""
-        from mldata.core.framework import export_dataset
         import polars as pl
 
-        test_dir = Path('/tmp/test-export-framework')
+        from mldata.core.framework import export_dataset
+
+        test_dir = Path("/tmp/test-export-framework")
         test_dir.mkdir(exist_ok=True)
 
         try:
-            df = pl.DataFrame({
-                'id': [1, 2, 3],
-                'feature': [10.5, 20.5, 30.5],
-                'label': [0, 1, 0],
-            })
+            df = pl.DataFrame(
+                {
+                    "id": [1, 2, 3],
+                    "feature": [10.5, 20.5, 30.5],
+                    "label": [0, 1, 0],
+                }
+            )
 
             result = export_dataset(df, test_dir, framework="pytorch", dataset_name="test")
 
@@ -1517,6 +1574,6 @@ class TestFrameworkExport:
             assert len(result.loader_code) > 0
         finally:
             import shutil
+
             if test_dir.exists():
                 shutil.rmtree(test_dir)
-

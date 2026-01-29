@@ -8,7 +8,6 @@ from typing import Any
 import diskcache
 
 from mldata.models.config import CacheConfig
-from mldata.utils.hashing import compute_hash
 
 
 class CacheService:

@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 import polars as pl
 
@@ -10,6 +9,7 @@ import polars as pl
 @dataclass
 class CompressionOptions:
     """Compression configuration options."""
+
     type: str
     level: int | None = None  # None means default/auto
 
@@ -32,33 +32,33 @@ class ExportService:
             "description": "Fastest compression, moderate size reduction",
             "level_support": False,
             "typical_ratio": "2-3x",
-            "speed": "Fastest"
+            "speed": "Fastest",
         },
         "gzip": {
             "description": "Balanced speed and compression",
             "level_support": True,
             "levels": "1 (fastest) to 9 (best)",
             "typical_ratio": "3-5x",
-            "speed": "Medium"
+            "speed": "Medium",
         },
         "zstd": {
             "description": "Best compression ratio, good speed",
             "level_support": True,
             "levels": "1 (fastest) to 22 (best)",
             "typical_ratio": "4-7x",
-            "speed": "Fast"
+            "speed": "Fast",
         },
         "lz4": {
             "description": "Very fast, lower compression",
             "level_support": False,
             "typical_ratio": "2x",
-            "speed": "Very Fast"
+            "speed": "Very Fast",
         },
         None: {
             "description": "No compression, fastest write speed",
             "level_support": False,
             "typical_ratio": "1x",
-            "speed": "Instant"
+            "speed": "Instant",
         },
     }
 

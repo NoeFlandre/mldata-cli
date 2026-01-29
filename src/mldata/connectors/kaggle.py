@@ -1,19 +1,19 @@
 """Kaggle connector."""
 
 import os
+from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import AsyncIterator
 
+from mldata.connectors.base import BaseConnector
 from mldata.models.dataset import (
+    DataModality,
     DatasetMetadata,
     DatasetSource,
-    DataModality,
-    MLTask,
     DownloadProgress,
+    MLTask,
     SearchResult,
 )
 from mldata.utils.auth import get_credentials
-from mldata.connectors.base import BaseConnector
 
 
 class KaggleConnector(BaseConnector):
@@ -203,7 +203,6 @@ class KaggleConnector(BaseConnector):
         Yields:
             Download progress updates
         """
-        import time
         from kaggle.api.kaggle_api_extended import KaggleApi
 
         self._ensure_authenticated()

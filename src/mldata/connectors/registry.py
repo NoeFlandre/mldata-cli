@@ -1,15 +1,12 @@
 """Connector registry."""
 
-from typing import Type
-
 from mldata.connectors.base import BaseConnector
 from mldata.connectors.huggingface import HuggingFaceConnector
 from mldata.connectors.kaggle import KaggleConnector
-from mldata.connectors.openml import OpenMLConnector
 from mldata.connectors.local import LocalConnector
+from mldata.connectors.openml import OpenMLConnector
 
-
-CONNECTORS: dict[str, Type[BaseConnector]] = {
+CONNECTORS: dict[str, type[BaseConnector]] = {
     "huggingface": HuggingFaceConnector,
     "hf": HuggingFaceConnector,
     "kaggle": KaggleConnector,
@@ -17,7 +14,7 @@ CONNECTORS: dict[str, Type[BaseConnector]] = {
     "local": LocalConnector,
 }
 
-URI_SCHEME_MAP: dict[str, Type[BaseConnector]] = {}
+URI_SCHEME_MAP: dict[str, type[BaseConnector]] = {}
 
 
 def _build_uri_scheme_map() -> None:
@@ -46,6 +43,7 @@ def get_connector(uri: str) -> BaseConnector:
     if "://" not in uri:
         # Check if it's a valid local path
         from pathlib import Path
+
         path = Path(uri)
         if uri.startswith("/") or uri.startswith("./") or uri.startswith("../"):
             return LocalConnector()

@@ -1,15 +1,16 @@
 """End-to-end tests for complete workflows."""
 
-import pytest
 import tempfile
 from pathlib import Path
-import polars as pl
 
-from mldata.core.normalize import NormalizeService
-from mldata.core.split import SplitService
+import polars as pl
+import pytest
+
+from mldata import __version__
 from mldata.core.export import ExportService
 from mldata.core.manifest import ManifestService
-from mldata import __version__
+from mldata.core.normalize import NormalizeService
+from mldata.core.split import SplitService
 
 
 class TestBuildPipelineE2E:
@@ -49,7 +50,7 @@ class TestBuildPipelineE2E:
 
             splits_dir = output_path / "splits"
             splits_dir.mkdir()
-            split_paths = split_service.save_splits(splits, splits_dir, format="parquet")
+            split_service.save_splits(splits, splits_dir, format="parquet")
 
             assert (splits_dir / "train.parquet").exists()
             assert (splits_dir / "val.parquet").exists()
@@ -61,8 +62,8 @@ class TestBuildPipelineE2E:
             test = pl.read_parquet(splits_dir / "test.parquet")
 
             assert train.height == 14  # 70%
-            assert val.height == 3     # 15%
-            assert test.height == 3    # 15%
+            assert val.height == 3  # 15%
+            assert test.height == 3  # 15%
 
     def test_split_command_functionality(self, sample_data):
         """Test split command functionality."""
@@ -82,7 +83,7 @@ class TestBuildPipelineE2E:
             assert (splits_dir / "test.csv").exists()
 
             # Also test saving indices
-            index_paths = split_service.save_split_indices(splits, splits_dir)
+            split_service.save_split_indices(splits, splits_dir)
             assert (splits_dir / "train_indices.csv").exists()
 
     def test_export_all_formats(self, sample_data):
@@ -127,6 +128,7 @@ class TestBuildPipelineE2E:
 
             # Create manifest with the actual file hash
             from mldata.utils.hashing import compute_file_hash
+
             actual_hash = compute_file_hash(data_file)
 
             # Create manifest
@@ -213,10 +215,13 @@ class TestBuildPipelineE2E:
 
         # Add results to report
         from mldata.models.report import CheckResult, CheckStatus
-        report.checks.append(CheckResult(
-            check_name="duplicates",
-            status=CheckStatus.PASSED if dup_result["passed"] else CheckStatus.FAILED,
-        ))
+
+        report.checks.append(
+            CheckResult(
+                check_name="duplicates",
+                status=CheckStatus.PASSED if dup_result["passed"] else CheckStatus.FAILED,
+            )
+        )
 
         # Save report
         with tempfile.TemporaryDirectory() as tmpdir:

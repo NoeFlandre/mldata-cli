@@ -1,11 +1,10 @@
 """Missing value check."""
 
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
-from mldata.checks.base import BaseCheck, CheckResult, CheckStatus, CheckSeverity
+from mldata.checks.base import BaseCheck, CheckResult, CheckSeverity, CheckStatus
 
 
 class MissingValueCheck(BaseCheck):
@@ -55,11 +54,13 @@ class MissingValueCheck(BaseCheck):
             missing_ratio = missing_count / total if total > 0 else 0
 
             if missing_ratio > max_missing_ratio:
-                issues.append({
-                    "column": col_name,
-                    "missing_count": missing_count,
-                    "missing_ratio": missing_ratio,
-                })
+                issues.append(
+                    {
+                        "column": col_name,
+                        "missing_count": missing_count,
+                        "missing_ratio": missing_ratio,
+                    }
+                )
                 total_missing += missing_count
 
         if issues:

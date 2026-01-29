@@ -3,12 +3,12 @@
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
 class LFSResult:
     """Result of Git-LFS operation."""
+
     success: bool
     patterns_added: list[str] | None = None
     error: str | None = None
@@ -81,7 +81,7 @@ class GitLFSService:
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def get_git_root(self, path: Path) -> Optional[Path]:
+    def get_git_root(self, path: Path) -> Path | None:
         """Get the git repository root for a path.
 
         Args:
@@ -356,20 +356,22 @@ class GitLFSService:
             for pattern in sorted(self.DEFAULT_PATTERNS.keys()):
                 instructions.append(f'git lfs track "*{pattern}"')
 
-        instructions.extend([
-            "",
-            "# 3. Update .gitattributes:",
-            "git add .gitattributes",
-            "",
-            "# 4. Commit changes:",
-            f"git commit -m 'Add Git-LFS tracking for {dataset_path.name}'",
-            "",
-            "# 5. Commit dataset files:",
-            f"git add {dataset_path.name}/",
-            f"git commit -m 'Add {dataset_path.name} dataset'",
-            "",
-            "# 6. Push to remote (files tracked by LFS will be pushed to LFS server):",
-            "git push",
-        ])
+        instructions.extend(
+            [
+                "",
+                "# 3. Update .gitattributes:",
+                "git add .gitattributes",
+                "",
+                "# 4. Commit changes:",
+                f"git commit -m 'Add Git-LFS tracking for {dataset_path.name}'",
+                "",
+                "# 5. Commit dataset files:",
+                f"git add {dataset_path.name}/",
+                f"git commit -m 'Add {dataset_path.name} dataset'",
+                "",
+                "# 6. Push to remote (files tracked by LFS will be pushed to LFS server):",
+                "git push",
+            ]
+        )
 
         return "\n".join(instructions)

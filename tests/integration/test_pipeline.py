@@ -1,15 +1,15 @@
 """Integration tests for data processing pipeline."""
 
-import pytest
-import polars as pl
 import tempfile
 from pathlib import Path
 
+import polars as pl
+
+from mldata.core.export import ExportService
+from mldata.core.manifest import ManifestService
 from mldata.core.normalize import NormalizeService
 from mldata.core.split import SplitService
 from mldata.core.validate import ValidateService
-from mldata.core.export import ExportService
-from mldata.core.manifest import ManifestService
 
 
 class TestNormalizeService:
@@ -64,11 +64,13 @@ class TestSplitService:
 
     def test_basic_split(self):
         """Test basic train/val/test split."""
-        df = pl.DataFrame({
-            "id": list(range(100)),
-            "label": ["a"] * 50 + ["b"] * 50,
-            "text": ["text"] * 100,
-        })
+        df = pl.DataFrame(
+            {
+                "id": list(range(100)),
+                "label": ["a"] * 50 + ["b"] * 50,
+                "text": ["text"] * 100,
+            }
+        )
 
         service = SplitService()
         splits = service.split(df, ratios=[0.8, 0.1, 0.1], seed=42)
@@ -108,10 +110,12 @@ class TestSplitService:
 
     def test_stratified_split(self):
         """Test stratified split preserves label distribution."""
-        df = pl.DataFrame({
-            "id": list(range(100)),
-            "label": ["a"] * 30 + ["b"] * 40 + ["c"] * 30,
-        })
+        df = pl.DataFrame(
+            {
+                "id": list(range(100)),
+                "label": ["a"] * 30 + ["b"] * 40 + ["c"] * 30,
+            }
+        )
 
         service = SplitService()
         # Skip stratified test if column not found or too few samples
@@ -133,10 +137,12 @@ class TestValidateService:
 
     def test_check_duplicates(self):
         """Test duplicate detection."""
-        df = pl.DataFrame({
-            "id": [1, 2, 2, 4],
-            "text": ["a", "b", "b", "d"],
-        })
+        df = pl.DataFrame(
+            {
+                "id": [1, 2, 2, 4],
+                "text": ["a", "b", "b", "d"],
+            }
+        )
 
         service = ValidateService()
         result = service.check_duplicates(df)
@@ -146,10 +152,12 @@ class TestValidateService:
 
     def test_check_missing_values(self):
         """Test missing value detection."""
-        df = pl.DataFrame({
-            "id": [1, 2, None, 4],
-            "text": ["a", None, "c", "d"],
-        })
+        df = pl.DataFrame(
+            {
+                "id": [1, 2, None, 4],
+                "text": ["a", None, "c", "d"],
+            }
+        )
 
         service = ValidateService()
         result = service.check_missing_values(df)
@@ -158,10 +166,12 @@ class TestValidateService:
 
     def test_check_label_distribution(self):
         """Test label distribution check."""
-        df = pl.DataFrame({
-            "id": list(range(100)),
-            "label": ["a"] * 70 + ["b"] * 30,
-        })
+        df = pl.DataFrame(
+            {
+                "id": list(range(100)),
+                "label": ["a"] * 70 + ["b"] * 30,
+            }
+        )
 
         service = ValidateService()
         result = service.check_label_distribution(df, "label")

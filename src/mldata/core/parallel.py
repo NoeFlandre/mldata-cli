@@ -1,8 +1,9 @@
 """Parallel processing service for concurrent dataset operations."""
 
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 import polars as pl
 
@@ -118,7 +119,7 @@ class ParallelService:
         # Process chunks in parallel
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = {executor.submit(split_fn, chunk): i for i, chunk in enumerate(chunks)}
-            results: list[dict[str, "pl.DataFrame"]] = [{}] * len(chunks)
+            results: list[dict[str, pl.DataFrame]] = [{}] * len(chunks)
 
             for future in as_completed(futures):
                 idx = futures[future]

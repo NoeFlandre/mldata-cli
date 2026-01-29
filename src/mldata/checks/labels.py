@@ -1,11 +1,10 @@
 """Label distribution check."""
 
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
-from mldata.checks.base import BaseCheck, CheckResult, CheckStatus, CheckSeverity
+from mldata.checks.base import BaseCheck, CheckResult, CheckSeverity, CheckStatus
 
 
 class LabelDistributionCheck(BaseCheck):

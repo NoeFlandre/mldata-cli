@@ -1,9 +1,9 @@
 """Data models module."""
 
-from mldata.models.dataset import DatasetMetadata, SearchResult, DownloadProgress
-from mldata.models.manifest import Manifest, BuildConfig
-from mldata.models.report import QualityReport, CheckResult
-from mldata.models.config import MldataConfig, ConnectorConfig
+from mldata.models.config import ConnectorConfig, MldataConfig
+from mldata.models.dataset import DatasetMetadata, DownloadProgress, SearchResult
+from mldata.models.manifest import BuildConfig, Manifest
+from mldata.models.report import CheckResult, QualityReport
 
 __all__ = [
     "DatasetMetadata",

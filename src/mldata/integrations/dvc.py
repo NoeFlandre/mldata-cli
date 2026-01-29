@@ -3,12 +3,12 @@
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
 class DVCRResult:
     """Result of DVC operation."""
+
     success: bool
     dvc_path: Path | None = None
     error: str | None = None
@@ -38,7 +38,7 @@ class DVCService:
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         """Get DVC version.
 
         Returns:
@@ -61,7 +61,7 @@ class DVCService:
         self,
         dataset_path: Path,
         manifest_hash: str,
-        remote: Optional[str] = None,
+        remote: str | None = None,
     ) -> DVCRResult:
         """Generate a .dvc file for a dataset.
 
@@ -211,18 +211,18 @@ class DVCService:
         dvc_path = dataset_path.parent / f"{dataset_path.name}.dvc"
 
         instructions = [
-            f"# Commands to version and push dataset with DVC:",
+            "# Commands to version and push dataset with DVC:",
             "",
-            f"# 1. Add to DVC tracking:",
+            "# 1. Add to DVC tracking:",
             f"dvc add {dataset_path.name}",
             "",
-            f"# 2. Commit DVC file:",
+            "# 2. Commit DVC file:",
             f"git add {dvc_path.name} .gitignore",
             f"git commit -m 'Add {dataset_path.name} dataset'",
             "",
-            f"# 3. Push to remote:",
-            f"git push",
-            f"dvc push",
+            "# 3. Push to remote:",
+            "git push",
+            "dvc push",
             "",
             "# Note: Ensure DVC remote is configured:",
             "# dvc remote add -d myremote s3://bucket/path",

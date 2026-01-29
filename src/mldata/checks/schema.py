@@ -1,11 +1,10 @@
 """Schema consistency check."""
 
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
-from mldata.checks.base import BaseCheck, CheckResult, CheckStatus, CheckSeverity
+from mldata.checks.base import BaseCheck, CheckResult, CheckSeverity, CheckStatus
 
 
 class SchemaConsistencyCheck(BaseCheck):
@@ -57,24 +56,28 @@ class SchemaConsistencyCheck(BaseCheck):
             if split_columns != ref_columns:
                 missing = ref_columns - split_columns
                 extra = split_columns - ref_columns
-                issues.append({
-                    "file": split_file.name,
-                    "issue": "Column mismatch",
-                    "missing": list(missing),
-                    "extra": list(extra),
-                })
+                issues.append(
+                    {
+                        "file": split_file.name,
+                        "issue": "Column mismatch",
+                        "missing": list(missing),
+                        "extra": list(extra),
+                    }
+                )
                 consistent = False
 
             # Check types
             for col in df.columns:
                 if col in ref_schema and df[col].dtype != ref_schema[col]:
-                    issues.append({
-                        "file": split_file.name,
-                        "issue": "Type mismatch",
-                        "column": col,
-                        "expected": str(ref_schema[col]),
-                        "actual": str(df[col].dtype),
-                    })
+                    issues.append(
+                        {
+                            "file": split_file.name,
+                            "issue": "Type mismatch",
+                            "column": col,
+                            "expected": str(ref_schema[col]),
+                            "actual": str(df[col].dtype),
+                        }
+                    )
                     consistent = False
 
         if not consistent:

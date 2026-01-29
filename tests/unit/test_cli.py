@@ -1,8 +1,5 @@
 """Unit tests for CLI."""
 
-import pytest
-from typer.testing import CliRunner
-
 
 class TestCLIVersion:
     """Tests for CLI version command."""

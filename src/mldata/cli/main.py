@@ -1,16 +1,19 @@
 """Main CLI application using Typer."""
 
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 
 from mldata import __version__
-from mldata.utils.auth import check_credentials, get_credentials, save_credentials, clear_credentials
+from mldata.utils.auth import (
+    check_credentials,
+    clear_credentials,
+    save_credentials,
+)
 
 app = typer.Typer(
     name="mldata",
@@ -41,12 +44,12 @@ def version_cmd() -> None:
 @app.command("search")
 def search_cmd(
     query: str = typer.Argument(..., help="Search query"),
-    source: Optional[str] = typer.Option(None, "-s", "--source", help="Filter by source (hf, kaggle, openml)"),
-    modality: Optional[str] = typer.Option(None, "-m", "--modality", help="Filter by modality (text, image, audio, tabular)"),
-    task: Optional[str] = typer.Option(None, "-t", "--task", help="Filter by task (classification, regression, generation)"),
-    license: Optional[str] = typer.Option(None, "-l", "--license", help="Filter by license"),
-    min_size: Optional[str] = typer.Option(None, "--min-size", help="Minimum size (e.g., 10MB)"),
-    max_size: Optional[str] = typer.Option(None, "--max-size", help="Maximum size (e.g., 1GB)"),
+    source: str | None = typer.Option(None, "-s", "--source", help="Filter by source (hf, kaggle, openml)"),
+    modality: str | None = typer.Option(None, "-m", "--modality", help="Filter by modality (text, image, audio, tabular)"),
+    task: str | None = typer.Option(None, "-t", "--task", help="Filter by task (classification, regression, generation)"),
+    license: str | None = typer.Option(None, "-l", "--license", help="Filter by license"),
+    min_size: str | None = typer.Option(None, "--min-size", help="Minimum size (e.g., 10MB)"),
+    max_size: str | None = typer.Option(None, "--max-size", help="Maximum size (e.g., 1GB)"),
     limit: int = typer.Option(20, "-n", "--limit", help="Maximum results"),
 ) -> None:
     """Search for datasets across sources."""
@@ -77,7 +80,7 @@ def search_cmd(
             except ImportError:
                 # Kaggle package not installed
                 pass
-            except ValueError as e:
+            except ValueError:
                 # Kaggle not configured - skip silently
                 pass
             except Exception as e:
@@ -193,7 +196,7 @@ def info_cmd(
                 schema_table.add_row(str(i), col.name, col.dtype, nullable)
 
             if len(metadata.columns) > 20:
-                schema_table.add_row(f"...", f"({len(metadata.columns) - 20} more)", "...", "...")
+                schema_table.add_row("...", f"({len(metadata.columns) - 20} more)", "...", "...")
 
             console.print(schema_table)
 
@@ -209,14 +212,15 @@ def info_cmd(
 @app.command("pull")
 def pull_cmd(
     uri: str = typer.Argument(..., help="Dataset URI"),
-    output: Optional[str] = typer.Option(None, "-o", "--output", help="Output directory"),
-    revision: Optional[str] = typer.Option(None, "-r", "--revision", help="Specific version/revision"),
-    subset: Optional[str] = typer.Option(None, "--subset", help="Specific subset/config"),
+    output: str | None = typer.Option(None, "-o", "--output", help="Output directory"),
+    revision: str | None = typer.Option(None, "-r", "--revision", help="Specific version/revision"),
+    subset: str | None = typer.Option(None, "--subset", help="Specific subset/config"),
     no_cache: bool = typer.Option(False, "--no-cache", help="Force fresh download"),
 ) -> None:
     """Download a dataset."""
     import asyncio
     from pathlib import Path
+
     from mldata.core.fetch import FetchService
 
     async def _pull():
@@ -240,11 +244,11 @@ def pull_cmd(
 @app.command("build")
 def build_cmd(
     uri: str = typer.Argument(..., help="Dataset URI"),
-    output: Optional[str] = typer.Option(None, "-o", "--output", help="Output directory"),
+    output: str | None = typer.Option(None, "-o", "--output", help="Output directory"),
     format: str = typer.Option("parquet", "-f", "--format", help="Output format (parquet, csv, jsonl)"),
     split: str = typer.Option("0.8,0.1,0.1", "-s", "--split", help="Train/val/test split ratios"),
-    seed: Optional[int] = typer.Option(None, "--seed", help="Random seed for reproducibility"),
-    stratify: Optional[str] = typer.Option(None, "--stratify", help="Column to stratify on"),
+    seed: int | None = typer.Option(None, "--seed", help="Random seed for reproducibility"),
+    stratify: str | None = typer.Option(None, "--stratify", help="Column to stratify on"),
     validate: bool = typer.Option(True, "--validate/--no-validate", help="Run quality validation"),
     no_cache: bool = typer.Option(False, "--no-cache", help="Skip cache"),
     incremental: bool = typer.Option(False, "--incremental", help="Enable incremental builds (skip unchanged files)"),
@@ -252,13 +256,13 @@ def build_cmd(
     """Full pipeline: fetch, normalize, validate, split, and export a dataset."""
     import asyncio
     from pathlib import Path
+
     from mldata.core.fetch import FetchService
+    from mldata.core.incremental import IncrementalService
+    from mldata.core.manifest import ManifestService
     from mldata.core.normalize import NormalizeService
     from mldata.core.split import SplitService
-    from mldata.core.export import ExportService
-    from mldata.core.manifest import ManifestService
     from mldata.core.validate import ValidateService
-    from mldata.core.incremental import IncrementalService
 
     async def _build():
         dataset_name = uri.split("/")[-1]
@@ -403,15 +407,15 @@ def build_cmd(
 @app.command("validate")
 def validate_cmd(
     path: Path = typer.Argument(..., help="Path to dataset directory or file"),
-    checks: Optional[str] = typer.Option(None, "-c", "--checks", help="Comma-separated checks to run (duplicates, labels, missing, schema, files)"),
-    report: Optional[str] = typer.Option(None, "-r", "--report", help="Output report path (auto-detect .md/.json)"),
+    checks: str | None = typer.Option(None, "-c", "--checks", help="Comma-separated checks to run (duplicates, labels, missing, schema, files)"),
+    report: str | None = typer.Option(None, "-r", "--report", help="Output report path (auto-detect .md/.json)"),
     json_output: bool = typer.Option(False, "--json", help="Output JSON format"),
-    sample: Optional[float] = typer.Option(None, "-s", "--sample", help="Sample percentage for file checks (10-100)"),
+    sample: float | None = typer.Option(None, "-s", "--sample", help="Sample percentage for file checks (10-100)"),
 ) -> None:
     """Run quality validation checks on a dataset."""
-    from mldata.core.validate import ValidateService, FileIntegrityService
     from mldata.core.normalize import NormalizeService
-    from mldata.models.report import QualityReport, CheckResult, CheckStatus
+    from mldata.core.validate import FileIntegrityService, ValidateService
+    from mldata.models.report import CheckResult, CheckStatus, QualityReport
 
     console.print(f"[bold]Validating: {path}[/]")
 
@@ -454,7 +458,7 @@ def validate_cmd(
 
     # Run file integrity check first if requested
     if "files" in check_list and file_integrity_files:
-        console.print(f"  [cyan]Running files...[/]")
+        console.print("  [cyan]Running files...[/]")
 
         integrity = FileIntegrityService()
         sample_percent = sample if sample else 100.0
@@ -477,7 +481,7 @@ def validate_cmd(
 
                 # Show invalid files
                 invalid_files = [r for r in results if not r.is_valid]
-                console.print(f"      [yellow]Invalid files:[/]")
+                console.print("      [yellow]Invalid files:[/]")
                 for result in invalid_files[:10]:
                     console.print(f"        - {result.path.name}: {result.error}")
 
@@ -620,13 +624,13 @@ def _show_validation_details(check_name: str, result: dict) -> None:
         count = result.get("exact_duplicates", 0)
         ratio = result.get("duplicate_ratio", 0)
         console.print(f"      [yellow]Found {count} duplicate rows ({ratio*100:.1f}%)[/]")
-        console.print(f"      [cyan]Suggestion: Remove duplicates or investigate data source[/]")
+        console.print("      [cyan]Suggestion: Remove duplicates or investigate data source[/]")
 
     elif check_name == "labels":
         imbalance = result.get("imbalance_ratio", 0)
         num_classes = result.get("num_classes", 0)
         console.print(f"      [yellow]Imbalance ratio: {imbalance*100:.1f}% ({num_classes} classes)[/]")
-        console.print(f"      [cyan]Suggestion: Consider data augmentation or class weights[/]")
+        console.print("      [cyan]Suggestion: Consider data augmentation or class weights[/]")
 
     elif check_name == "missing":
         issues = result.get("issues", [])
@@ -685,13 +689,13 @@ def _show_validation_details(check_name: str, result: dict) -> None:
 def drift_cmd(
     baseline: Path = typer.Argument(..., help="Baseline dataset (older build)"),
     current: Path = typer.Argument(..., help="Current dataset (newer build)"),
-    output: Optional[str] = typer.Option(None, "-o", "--output", help="Output report path (.json or .md)"),
+    output: str | None = typer.Option(None, "-o", "--output", help="Output report path (.json or .md)"),
     detailed: bool = typer.Option(False, "-d", "--detailed", help="Show detailed statistics"),
 ) -> None:
     """Detect data drift between two datasets using PSI and KL divergence."""
     from mldata.core.drift import DriftService
 
-    console.print(f"[bold]Drift Detection[/]")
+    console.print("[bold]Drift Detection[/]")
     console.print(f"  Baseline: {baseline}")
     console.print(f"  Current:  {current}")
 
@@ -775,14 +779,15 @@ def drift_cmd(
 @app.command("profile")
 def profile_cmd(
     path: Path = typer.Argument(..., help="Path to dataset file or directory"),
-    output: Optional[str] = typer.Option(None, "-o", "--output", help="Output report path (.json or .md)"),
+    output: str | None = typer.Option(None, "-o", "--output", help="Output report path (.json or .md)"),
     stats: bool = typer.Option(True, "--stats/--no-stats", help="Show statistics"),
     schema: bool = typer.Option(True, "--schema/--no-schema", help="Show schema"),
     sample: int = typer.Option(5, "-s", "--sample", help="Show sample rows"),
 ) -> None:
     """Generate a profile of a dataset with statistics."""
-    from mldata.core.profile import ProfileService
     from rich.table import Table
+
+    from mldata.core.profile import ProfileService
 
     console.print(f"[bold]Profiling: {path}[/]")
 
@@ -791,8 +796,8 @@ def profile_cmd(
         profile = profile_service.profile(path)
 
         # Overview panel
-        from rich.text import Text
         from rich.panel import Panel
+        from rich.text import Text
 
         overview = Text()
         overview.append(f"Path: {profile.path}\n")
@@ -878,9 +883,9 @@ def profile_cmd(
 def split_cmd(
     path: Path = typer.Argument(..., help="Path to dataset file or directory"),
     ratios: str = typer.Argument(..., help="Split ratios (e.g., 0.8,0.1,0.1)"),
-    output: Optional[Path] = typer.Option(None, "-o", "--output", help="Output directory"),
-    seed: Optional[int] = typer.Option(None, "--seed", help="Random seed"),
-    stratify: Optional[str] = typer.Option(None, "--stratify", help="Column to stratify on"),
+    output: Path | None = typer.Option(None, "-o", "--output", help="Output directory"),
+    seed: int | None = typer.Option(None, "--seed", help="Random seed"),
+    stratify: str | None = typer.Option(None, "--stratify", help="Column to stratify on"),
     format: str = typer.Option("csv", "-f", "--format", help="Output format"),
     indices: bool = typer.Option(False, "-i", "--indices", help="Save split indices"),
 ) -> None:
@@ -936,19 +941,18 @@ def split_cmd(
 @app.command("export")
 def export_cmd(
     path: Path = typer.Argument(..., help="Path to dataset"),
-    format: Optional[str] = typer.Option(None, "-f", "--format", help="Export format (parquet, csv, jsonl)"),
-    formats: Optional[str] = typer.Option(None, "--formats", help="Export to multiple formats (comma-separated: parquet,csv,jsonl)"),
-    output: Optional[Path] = typer.Option(None, "-o", "--output", help="Output directory"),
-    compression: Optional[str] = typer.Option(None, "--compression", help="Compression (snappy, gzip, zstd)"),
+    format: str | None = typer.Option(None, "-f", "--format", help="Export format (parquet, csv, jsonl)"),
+    formats: str | None = typer.Option(None, "--formats", help="Export to multiple formats (comma-separated: parquet,csv,jsonl)"),
+    output: Path | None = typer.Option(None, "-o", "--output", help="Output directory"),
+    compression: str | None = typer.Option(None, "--compression", help="Compression (snappy, gzip, zstd)"),
     all_formats: bool = typer.Option(False, "-a", "--all", help="Export to all formats"),
-    framework: Optional[str] = typer.Option(None, "--framework", help="Export with framework loader (pytorch, tensorflow, jax)"),
+    framework: str | None = typer.Option(None, "--framework", help="Export with framework loader (pytorch, tensorflow, jax)"),
     dvc: bool = typer.Option(False, "--dvc", help="Generate DVC file for dataset versioning"),
     git_lfs: bool = typer.Option(False, "--git-lfs", help="Configure Git-LFS tracking for large files"),
 ) -> None:
     """Export a dataset to a specific format or multiple formats."""
-    from mldata.core.normalize import NormalizeService
     from mldata.core.export import ExportService
-    from mldata.core.framework import FrameworkExportService
+    from mldata.core.normalize import NormalizeService
     from mldata.integrations.dvc import DVCService
     from mldata.integrations.gitlfs import GitLFSService
 
@@ -1011,7 +1015,7 @@ def export_cmd(
 
     # DVC integration
     if dvc:
-        console.print(f"[bold]Generating DVC file...[/]")
+        console.print("[bold]Generating DVC file...[/]")
         dvc_service = DVCService()
         # Compute hash of the data file
         from mldata.core.fetch import FetchService
@@ -1025,20 +1029,20 @@ def export_cmd(
         dvc_path = path.parent / f"{path.name}.dvc"
         if dvc_result.success:
             console.print(f"  [green]dvc: {dvc_path}[/]")
-            console.print(f"  [cyan]→ Run 'dvc push' to upload to remote storage[/]")
+            console.print("  [cyan]→ Run 'dvc push' to upload to remote storage[/]")
         else:
             console.print(f"  [red]DVC failed: {dvc_result.error}[/]")
 
     # Git-LFS integration
     if git_lfs:
-        console.print(f"[bold]Configuring Git-LFS...[/]")
+        console.print("[bold]Configuring Git-LFS...[/]")
         lfs_service = GitLFSService()
         import os
         git_root = os.getcwd()
         lfs_result = lfs_service.configure_tracking(Path(git_root), path)
         if lfs_result.success:
-            console.print(f"  [green]Git-LFS configured[/]")
-            console.print(f"  [cyan]→ Run 'git add .gitattributes' and 'git add -A && git commit'[/]")
+            console.print("  [green]Git-LFS configured[/]")
+            console.print("  [cyan]→ Run 'git add .gitattributes' and 'git add -A && git commit'[/]")
         else:
             console.print(f"  [red]Git-LFS failed: {lfs_result.error}[/]")
 
@@ -1050,20 +1054,20 @@ def export_cmd(
 @app.command("rebuild")
 def rebuild_cmd(
     manifest: Path = typer.Argument(..., help="Path to manifest.yaml"),
-    output: Optional[Path] = typer.Option(None, "-o", "--output", help="Output directory (default: same as manifest)"),
+    output: Path | None = typer.Option(None, "-o", "--output", help="Output directory (default: same as manifest)"),
     verify: bool = typer.Option(True, "-v", "--verify/--no-verify", help="Verify output against manifest"),
     dry_run: bool = typer.Option(False, "-n", "--dry-run", help="Show what would happen without executing"),
 ) -> None:
     """Rebuild a dataset from its manifest."""
     import asyncio
     from pathlib import Path as PathType
-    from mldata.core.manifest import ManifestService
+
+    from mldata import __version__
     from mldata.core.fetch import FetchService
+    from mldata.core.manifest import ManifestService
     from mldata.core.normalize import NormalizeService
     from mldata.core.split import SplitService
-    from mldata.core.export import ExportService
     from mldata.core.validate import ValidateService
-    from mldata import __version__
 
     manifest_service = ManifestService()
 
@@ -1090,7 +1094,7 @@ def rebuild_cmd(
     stratify = build_params.get("stratify")
     output_format = build_params.get("format", "parquet")
 
-    console.print(f"[bold]Rebuilding from manifest[/]")
+    console.print("[bold]Rebuilding from manifest[/]")
     console.print(f"Source: {source_uri}")
     console.print(f"Output: {output}")
     console.print(f"Format: {output_format}")
@@ -1251,9 +1255,9 @@ def diff_cmd(
     detailed: bool = typer.Option(False, "-D", "--detailed", help="Show detailed differences"),
 ) -> None:
     """Compare two dataset builds with optional drift and schema analysis."""
-    from mldata.core.manifest import ManifestService
     from mldata.core.diff import DiffService
     from mldata.core.drift import DriftService
+    from mldata.core.manifest import ManifestService
     from mldata.core.schema import SchemaEvolutionService
 
     manifest_service = ManifestService()
@@ -1279,7 +1283,7 @@ def diff_cmd(
     except Exception as e:
         console.print(f"[yellow]Warning: Could not load one or both manifests: {e}[/]")
 
-    console.print(f"[bold]Comparing builds[/]")
+    console.print("[bold]Comparing builds[/]")
     console.print(f"  Build 1: {manifest1_uri}")
     console.print(f"  Build 2: {manifest2_uri}")
 
@@ -1387,7 +1391,6 @@ def _compare_manifests(m1, m2, detailed: bool) -> None:
 
 def _display_data_comparison(comparison: dict, detailed: bool) -> None:
     """Display data comparison results."""
-    from rich.table import Table
 
     # Shape comparison
     shape = comparison.get("shape", {})
@@ -1625,7 +1628,7 @@ def auth_logout(
 
 @app.command("auth")
 def auth_cmd(
-    source: Optional[str] = typer.Argument(None, help="Source (huggingface, kaggle, openml)"),
+    source: str | None = typer.Argument(None, help="Source (huggingface, kaggle, openml)"),
 ) -> None:
     """Manage authentication credentials.
 
@@ -1681,8 +1684,8 @@ def doctor_cmd() -> None:
 
 @app.command("config")
 def config_cmd(
-    get: Optional[str] = typer.Option(None, "-g", "--get", help="Get a config value (e.g., 'build.default_format')"),
-    set: Optional[str] = typer.Option(None, "-s", "--set", help="Set a config value (e.g., 'build.default_format parquet')"),
+    get: str | None = typer.Option(None, "-g", "--get", help="Get a config value (e.g., 'build.default_format')"),
+    set: str | None = typer.Option(None, "-s", "--set", help="Set a config value (e.g., 'build.default_format parquet')"),
     path: bool = typer.Option(False, "-p", "--path", help="Show config file path"),
     show: bool = typer.Option(False, "-S", "--show", help="Show all configuration"),
 ) -> None:
@@ -1823,7 +1826,6 @@ def _suggest_command(invalid_cmd: str) -> str | None:
 
 def main() -> None:
     """Main entry point with error handling."""
-    import sys
     import re
     import signal
 
@@ -1875,15 +1877,15 @@ def main() -> None:
                         console.print(f"  - {cmd}")
 
         elif "could not resolve path" in error_lower or "no such file or directory" in error_lower:
-            console.print(f"[red]Error: Path not found[/]")
+            console.print("[red]Error: Path not found[/]")
             console.print("[cyan]Tip: Check that the file or directory exists[/]")
 
         elif "connection" in error_lower or "network" in error_lower or "timeout" in error_lower:
-            console.print(f"[red]Error: Network connection failed[/]")
+            console.print("[red]Error: Network connection failed[/]")
             console.print("[cyan]Tip: Check your internet connection and try again[/]")
 
         elif "authentication" in error_lower or "credential" in error_lower or "api key" in error_lower:
-            console.print(f"[red]Error: Authentication failed[/]")
+            console.print("[red]Error: Authentication failed[/]")
             console.print("[cyan]Tip: Run 'mldata auth login <source>' to configure credentials[/]")
 
         else:

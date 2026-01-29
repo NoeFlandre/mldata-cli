@@ -1,17 +1,16 @@
 """Progress utilities."""
 
 import time
-from typing import Iterator
 
 from rich.progress import (
-    Progress,
-    TextColumn,
     BarColumn,
     DownloadColumn,
-    TransferSpeedColumn,
-    TimeRemainingColumn,
-    TaskProgressColumn,
+    Progress,
     SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeRemainingColumn,
+    TransferSpeedColumn,
 )
 
 

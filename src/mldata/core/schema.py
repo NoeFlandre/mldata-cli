@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -266,11 +265,13 @@ class SchemaEvolutionService:
         columns = []
         for col_name in df.columns:
             col = df[col_name]
-            columns.append(SchemaColumn(
-                name=col_name,
-                dtype=str(col.dtype),
-                nullable=col.null_count() > 0,
-            ))
+            columns.append(
+                SchemaColumn(
+                    name=col_name,
+                    dtype=str(col.dtype),
+                    nullable=col.null_count() > 0,
+                )
+            )
         return columns
 
     def detect_evolution(

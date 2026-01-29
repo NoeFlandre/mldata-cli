@@ -1,7 +1,6 @@
 """Authentication utilities."""
 
 import os
-from typing import Any
 
 import keyring
 from keyring.errors import KeyringError

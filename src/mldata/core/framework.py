@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
@@ -10,6 +9,7 @@ import polars as pl
 @dataclass
 class FrameworkExportResult:
     """Result of framework export operation."""
+
     success: bool
     output_dir: Path | None = None
     files_created: list[str] | None = None
@@ -234,11 +234,11 @@ class PyTorchExporter(FrameworkExporter):
 '''
         else:
             feature_str_all = "{" + ", ".join(f'"{c}": row["{c}"]' for c in columns) + "}"
-            target_code = f'''    def __getitem__(self, idx):
+            target_code = f"""    def __getitem__(self, idx):
         row = self.data[idx]
         x = {feature_str_all}
         return x
-'''
+"""
 
         code = f'''import polars as pl
 from torch.utils.data import Dataset, DataLoader
@@ -342,7 +342,6 @@ class TensorFlowExporter(FrameworkExporter):
         target_col = next((c for c in columns if c.lower() in target_cols), None)
 
         if target_col:
-            feature_cols = [c for c in columns if c != target_col]
             code = f'''import tensorflow as tf
 import polars as pl
 
@@ -429,9 +428,11 @@ class JAXExporter(FrameworkExporter):
             # Export as numpy .npz files (JAX works well with numpy)
             import numpy as np
 
-            for split_name, split_df in [("train", df.head(len(df) * 8 // 10)),
-                                          ("val", df.tail(len(df) * 2 // 10)),
-                                          ("test", df.tail(len(df) - len(df) * 8 // 10 - len(df) * 2 // 10))]:
+            for split_name, split_df in [
+                ("train", df.head(len(df) * 8 // 10)),
+                ("val", df.tail(len(df) * 2 // 10)),
+                ("test", df.tail(len(df) - len(df) * 8 // 10 - len(df) * 2 // 10)),
+            ]:
                 output_path = data_dir / f"{split_name}.npz"
                 # Convert to numpy arrays and save
                 arrays = {col: split_df[col].to_numpy() for col in split_df.columns}

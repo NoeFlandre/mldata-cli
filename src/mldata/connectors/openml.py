@@ -1,22 +1,22 @@
 """OpenML connector."""
 
 import os
+from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Any, AsyncIterator
+from typing import Any
 
 import openml
-from openml.datasets import OpenMLDataset
 
+from mldata.connectors.base import BaseConnector
 from mldata.models.dataset import (
+    DataModality,
     DatasetMetadata,
     DatasetSource,
-    DataModality,
-    MLTask,
     DownloadProgress,
+    MLTask,
     SearchResult,
 )
 from mldata.utils.auth import get_credentials
-from mldata.connectors.base import BaseConnector
 
 
 class OpenMLConnector(BaseConnector):
@@ -210,7 +210,6 @@ class OpenMLConnector(BaseConnector):
         Yields:
             Download progress updates
         """
-        import time
 
         if self.api_key:
             openml.config.apikey = self.api_key

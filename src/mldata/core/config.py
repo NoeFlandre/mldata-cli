@@ -141,9 +141,9 @@ class ConfigService:
         # Set the value
         if hasattr(obj, keys[-1]):
             current_type = type(getattr(obj, keys[-1]))
-            if current_type == bool and isinstance(value, str):
+            if current_type is bool and isinstance(value, str):
                 value = value.lower() in ("true", "1", "yes")
-            elif current_type == list and isinstance(value, str):
+            elif current_type is list and isinstance(value, str):
                 value = [float(x) for x in value.split(",")]
             elif isinstance(value, str) and current_type in (int, float):
                 value = current_type(value)

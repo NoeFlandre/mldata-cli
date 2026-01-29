@@ -120,11 +120,13 @@ class DiffService:
                 dtype1 = df1[col].dtype
                 dtype2 = df2[col].dtype
                 if dtype1 != dtype2:
-                    type_mismatches.append({
-                        "column": col,
-                        "type1": str(dtype1),
-                        "type2": str(dtype2),
-                    })
+                    type_mismatches.append(
+                        {
+                            "column": col,
+                            "type1": str(dtype1),
+                            "type2": str(dtype2),
+                        }
+                    )
 
         return {
             "columns_match": cols1 == cols2,
@@ -156,12 +158,14 @@ class DiffService:
                 vals1 = sample1[col].to_list()
                 vals2 = sample2[col].to_list()
                 match = vals1 == vals2
-                column_comparisons.append({
-                    "column": col,
-                    "match": match,
-                    "path1_values": vals1,
-                    "path2_values": vals2,
-                })
+                column_comparisons.append(
+                    {
+                        "column": col,
+                        "match": match,
+                        "path1_values": vals1,
+                        "path2_values": vals2,
+                    }
+                )
 
         return {
             "columns": column_comparisons,

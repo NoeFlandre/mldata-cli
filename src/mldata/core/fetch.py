@@ -1,6 +1,5 @@
 """Fetch service for downloading datasets."""
 
-import asyncio
 import hashlib
 import json
 import time
@@ -14,6 +13,7 @@ from mldata.core.cache import CacheService
 @dataclass
 class PartialDownload:
     """State for interrupted downloads."""
+
     url: str
     temp_path: Path
     final_path: Path
@@ -155,8 +155,9 @@ class FetchService:
         Returns:
             Path to downloaded file
         """
-        import httpx
         import time
+
+        import httpx
 
         resume_state_path = self.RESUME_DIR / hashlib.md5(url.encode()).hexdigest()
         partial = None

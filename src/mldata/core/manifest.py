@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from mldata.models.manifest import Manifest
-from mldata.models.dataset import DatasetMetadata
 
 
 class ManifestService:

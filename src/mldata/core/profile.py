@@ -131,8 +131,16 @@ class ProfileService:
     """Service for generating dataset profiles."""
 
     NUMERIC_DTYPES = {
-        pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8,
-        pl.UInt64, pl.UInt32, pl.UInt16, pl.UInt8,
+        pl.Float64,
+        pl.Float32,
+        pl.Int64,
+        pl.Int32,
+        pl.Int16,
+        pl.Int8,
+        pl.UInt64,
+        pl.UInt32,
+        pl.UInt16,
+        pl.UInt8,
     }
 
     def __init__(self):
@@ -213,7 +221,7 @@ class ProfileService:
         # Compute percentiles
         percentiles = {}
         for p in [0.25, 0.5, 0.75, 0.9, 0.95, 0.99]:
-            percentiles[f"{int(p*100)}"] = float(values.quantile(p))
+            percentiles[f"{int(p * 100)}"] = float(values.quantile(p))
 
         return NumericStats(
             mean=float(col.mean()) if len(col) > 0 else None,
@@ -230,10 +238,7 @@ class ProfileService:
 
         value_counts = col.value_counts().sort("count", descending=True)
 
-        top_values = [
-            {"value": row[col_name], "count": int(row["count"])}
-            for row in value_counts.to_dicts()
-        ][:10]
+        top_values = [{"value": row[col_name], "count": int(row["count"])} for row in value_counts.to_dicts()][:10]
 
         return CategoricalStats(
             unique_values=col.n_unique(),

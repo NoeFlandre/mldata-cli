@@ -1,11 +1,10 @@
 """Duplicate detection check."""
 
 from pathlib import Path
-from typing import Any
 
 import polars as pl
 
-from mldata.checks.base import BaseCheck, CheckResult, CheckStatus, CheckSeverity
+from mldata.checks.base import BaseCheck, CheckResult, CheckSeverity, CheckStatus
 
 
 class DuplicateCheck(BaseCheck):
@@ -22,10 +21,6 @@ class DuplicateCheck(BaseCheck):
         }
 
     def run(self, dataset_path: Path, config: dict | None = None) -> CheckResult:
-        config = config or {}
-        threshold = config.get("threshold", 0.95)
-        hash_columns = config.get("hash_columns")
-
         # Find data files
         data_files = list(dataset_path.glob("*.csv")) + list(dataset_path.glob("*.parquet"))
 

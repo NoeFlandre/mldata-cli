@@ -1,15 +1,12 @@
 """Unit tests for utils."""
 
-import pytest
-from pathlib import Path
-
 
 class TestAuthUtils:
     """Tests for auth utilities."""
 
     def test_get_credentials_no_creds(self):
         """Test getting credentials when none configured."""
-        from mldata.utils.auth import get_credentials, clear_credentials
+        from mldata.utils.auth import clear_credentials, get_credentials
 
         # Clear any existing credentials
         clear_credentials("huggingface")

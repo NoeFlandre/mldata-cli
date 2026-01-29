@@ -3,7 +3,6 @@
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import polars as pl
@@ -95,9 +94,8 @@ class DriftReport(BaseModel):
             lines.append("")
             for col, drift in self.numeric_drift.items():
                 status = "DRIFT" if drift.get("drift_detected") else "OK"
-                style = "[red]" if drift.get("drift_detected") else "[green]"
                 lines.append(f"### {col} ({status})")
-                lines.append(f"- PSI: {drift.get('psi', 'N/A'):.4f}" if drift.get('psi') else "- PSI: N/A")
+                lines.append(f"- PSI: {drift.get('psi', 'N/A'):.4f}" if drift.get("psi") else "- PSI: N/A")
                 lines.append(f"- Severity: {drift.get('severity', 'unknown')}")
                 lines.append("")
 
@@ -106,9 +104,9 @@ class DriftReport(BaseModel):
             lines.append("")
             for col, drift in self.categorical_drift.items():
                 status = "DRIFT" if drift.get("drift_detected") else "OK"
-                style = "[red]" if drift.get("drift_detected") else "[green]"
+                chi_sq = f"{drift.get('chi_squared', 'N/A'):.4f}" if drift.get("chi_squared") else "N/A"
                 lines.append(f"### {col} ({status})")
-                lines.append(f"- Chi-squared: {drift.get('chi_squared', 'N/A'):.4f}" if drift.get('chi_squared') else "- Chi-squared: N/A")
+                lines.append(f"- Chi-squared: {chi_sq}")
                 lines.append(f"- Severity: {drift.get('severity', 'unknown')}")
                 lines.append("")
 
@@ -310,9 +308,17 @@ class DriftService:
             current_samples=len(current_df),
         )
 
-        NUMERIC_DTYPES = {
-            pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8,
-            pl.UInt64, pl.UInt32, pl.UInt16, pl.UInt8,
+        numeric_dtypes = {
+            pl.Float64,
+            pl.Float32,
+            pl.Int64,
+            pl.Int32,
+            pl.Int16,
+            pl.Int8,
+            pl.UInt64,
+            pl.UInt32,
+            pl.UInt16,
+            pl.UInt8,
         }
 
         severity_counts = {"low": 0, "medium": 0, "high": 0}
@@ -323,7 +329,7 @@ class DriftService:
             baseline_col = baseline_df[col]
             current_col = current_df[col]
 
-            if baseline_col.dtype in NUMERIC_DTYPES:
+            if baseline_col.dtype in numeric_dtypes:
                 baseline_vals = baseline_col.drop_nulls().to_list()
                 current_vals = current_col.drop_nulls().to_list()
 

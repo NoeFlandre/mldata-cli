@@ -1,8 +1,8 @@
 """Base connector interface."""
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import AsyncIterator
 
 from mldata.models.dataset import DatasetMetadata, DownloadProgress, SearchResult
 

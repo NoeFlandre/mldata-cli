@@ -2,7 +2,6 @@
 
 import random
 from pathlib import Path
-from typing import Iterator
 
 import polars as pl
 
@@ -59,9 +58,7 @@ class SplitService:
 
         # Stratified split if needed
         if stratify_column and stratify_column in df.columns:
-            train_indices, val_indices, test_indices = self._stratified_split(
-                df, stratify_column, ratios, seed
-            )
+            train_indices, val_indices, test_indices = self._stratified_split(df, stratify_column, ratios, seed)
 
         return {
             "train": df[train_indices],
@@ -100,7 +97,7 @@ class SplitService:
 
         for label in unique_labels:
             # Get indices for this label
-            label_indices = [i for i, l in enumerate(labels) if l == label]
+            label_indices = [i for i, lab in enumerate(labels) if lab == label]
             n = len(label_indices)
             train_end = int(n * ratios[0])
             val_end = train_end + int(n * ratios[1])

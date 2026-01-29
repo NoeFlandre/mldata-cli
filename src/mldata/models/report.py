@@ -52,6 +52,7 @@ class QualityReport(BaseModel):
     def create(cls, dataset_path: str, dataset_uri: str | None = None) -> "QualityReport":
         """Create a new quality report."""
         from datetime import timezone
+
         return cls(
             generated_at=datetime.now(timezone.utc),
             dataset_path=dataset_path,
