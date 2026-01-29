@@ -3,6 +3,8 @@
 import tempfile
 from pathlib import Path
 
+import pytest
+
 
 class TestProfileService:
     """Tests for ProfileService."""
@@ -866,6 +868,7 @@ class TestFileIntegrityService:
 
     def test_image_validation_valid(self):
         """Test validating a valid image file."""
+        pytest.importorskip("PIL")
 
         from PIL import Image
 
@@ -913,6 +916,8 @@ class TestFileIntegrityService:
 
     def test_file_integrity_run_check(self):
         """Test running file integrity checks."""
+        pytest.importorskip("PIL")
+
         from PIL import Image
 
         from mldata.core.validate import FileIntegrityService
